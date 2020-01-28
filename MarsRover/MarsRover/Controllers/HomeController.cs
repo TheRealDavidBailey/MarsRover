@@ -53,7 +53,6 @@ namespace MarsRover.Controllers
         [HttpPost]
         public JsonResult DownloadImages(List<string> images)
         {
-            //string result = string.Empty;
             List<string> result = new List<string>();
 
             try
