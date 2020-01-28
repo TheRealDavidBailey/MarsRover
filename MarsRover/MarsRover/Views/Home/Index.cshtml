@@ -1,0 +1,92 @@
+﻿@{
+    ViewBag.Title = "Images";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Mars Rover Images</h2>
+ <p>
+    <button style="color: black" onclick="fetchMarsRoverDates();">Fetch Mars Rover Images</button>
+</p>
+
+ <div id="images">
+ </div>
+
+<script type="text/javascript">
+    
+    function fetchMarsRoverDates() {
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetMarsRoverDates",
+            contentType: "application/json; charset=utf-8",
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            },
+            success: function (response) {
+                $.each(response.marRoverResults, function () {
+                    getPicturesByDate(this.dateForAPI);
+                });
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+    }
+
+    function getPicturesByDate(date) {
+        $.ajax({
+            type: "GET",
+            url: "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?earth_date=" + date + "&api_key=NcQGuMSAB6J92Jx2TxLi7ZbcLZxBndmRyP504FA3",
+            contentType: "application/json; charset=utf-8",
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            },
+            success: function (response) {
+                var imgArray = new Array();
+                $.each(response.photos, function () {
+                    imgArray.push(date + "|" + this.img_src);
+                });
+
+                if (imgArray.length > 0) {
+                    var postData = { images: imgArray };
+
+                    $.ajax({
+                        type: "POST",
+                        url: '/Home/DownloadImages',
+                        data: postData,
+                        dataType: "json",
+                        traditional: true,
+                        success: function (result) {
+                            $("#images").append('</br>');
+                            $("#images").append('<div><b>Date of Images: </b>' + date + '<b>&nbsp;&nbsp;&nbsp;Count: </b>' + imgArray.length + '</div>');
+                            $("#images").append('</br>');
+                            for (var i = 0; i < result.message.length; i++) {
+                                $("#images").append('<img src="' + result.message[i] + '" width="200" height="200" />');
+                            }
+                            $("#images").append('</br>');
+                        },
+                        failure: function (result) {
+                            alert(result.responseText);
+                        },
+                        error: function (result) {
+                            alert(result.responseText);
+                        }
+                    });
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+    }
+</script>
+
